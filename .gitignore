@@ -19,6 +19,8 @@ node_modules/
 .vercel
 dist/
 
-# OS
+# OS & Office
 .DS_Store
 Thumbs.db
+~$*.docx
+~$*.xlsx

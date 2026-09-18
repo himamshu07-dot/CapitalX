@@ -444,7 +444,6 @@ function renderAiCommentary(commentary) {
     document.getElementById('roast-spicy-pill').textContent = roast.spicy_rating;
     document.getElementById('roast-headline-text').textContent = roast.headline;
     document.getElementById('roast-body-text').textContent = roast.roast_body;
-    document.getElementById('roast-verdict-text').textContent = roast.verdict;
   }
 }
 
