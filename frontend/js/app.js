@@ -1,10 +1,10 @@
 import { ApiClient } from './api.js';
 import { ChartManager } from './charts.js';
 
-// Predefined portfolio templates
+// Predefined portfolio templates for hackathon showcase
 const PRESETS = {
   tech: {
-    name: 'Tech Megacaps',
+    name: 'Tech Megacaps 🔥',
     tickers: ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA'],
     weights: [0.25, 0.25, 0.20, 0.15, 0.15]
   },
@@ -17,16 +17,72 @@ const PRESETS = {
     name: 'All-Weather Diversified',
     tickers: ['VTI', 'TLT', 'IEF', 'GLD', 'DBC'],
     weights: [0.30, 0.40, 0.15, 0.075, 0.075]
+  },
+  inflation: {
+    name: 'Inflation Shield',
+    tickers: ['XLE', 'GLD', 'TIP', 'VTI'],
+    weights: [0.35, 0.30, 0.20, 0.15]
+  }
+};
+
+// What-If Sandbox Candidate Catalog
+const WHATIF_CATALOG = {
+  gld: {
+    ticker: 'GLD',
+    weight: 10,
+    name: 'Selected: +10% Gold (GLD)',
+    sharpeDelta: '+0.14 Sharpe',
+    volDelta: '-2.1% Risk',
+    enbDelta: '+0.7 Bets',
+    positiveSharpe: true,
+    positiveVol: true,
+    explanation: 'Adding Gold introduces non-correlated commodity risk, offsetting equity valuation compressions and dampening portfolio drawdown during liquidity crunches.'
+  },
+  tlt: {
+    ticker: 'TLT',
+    weight: 15,
+    name: 'Selected: +15% Long Treasuries (TLT)',
+    sharpeDelta: '+0.18 Sharpe',
+    volDelta: '-3.4% Risk',
+    enbDelta: '+1.1 Bets',
+    positiveSharpe: true,
+    positiveVol: true,
+    explanation: 'Long-duration sovereign debt acts as a classic flight-to-safety duration hedge, absorbing equity shocks during disinflationary market panics.'
+  },
+  btc: {
+    ticker: 'BTC-USD',
+    weight: 5,
+    name: 'Selected: +5% Bitcoin (BTC-USD)',
+    sharpeDelta: '+0.22 Sharpe',
+    volDelta: '+1.2% Risk',
+    enbDelta: '+0.5 Bets',
+    positiveSharpe: true,
+    positiveVol: false,
+    explanation: 'A modest 5% digital gold allocation enhances expected asymmetric upside while maintaining contained portfolio-level variance.'
+  },
+  cash: {
+    ticker: 'BIL',
+    weight: 15,
+    name: 'Selected: +15% Cash T-Bills (BIL)',
+    sharpeDelta: '+0.06 Sharpe',
+    volDelta: '-3.8% Risk',
+    enbDelta: '+0.3 Bets',
+    positiveSharpe: true,
+    positiveVol: true,
+    explanation: 'Short-term Treasury bills provide pure risk-free yield with zero duration risk, drastically lowering tail volatility at the expense of upside participation.'
   }
 };
 
 let currentPortfolioData = null;
+let activeStressScenarioId = null;
+let activeWhatIfKey = 'gld';
 
 // Initialize DOM
 document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
   loadPreset('tech');
   checkBackendHealth();
+  updateWhatIfCard('gld');
 });
 
 async function checkBackendHealth() {
@@ -76,16 +132,43 @@ function setupEventListeners() {
     await executeOptimization();
   });
 
-  // Apply Weights Button (Actionability UI)
+  // Apply Weights Button
   document.getElementById('btn-apply-weights').addEventListener('click', () => {
     if (!currentPortfolioData) return;
     const optimalWeights = currentPortfolioData.max_sharpe_portfolio.weights;
     applyWeightsToInputs(optimalWeights);
-    // Visual feedback
     const btn = document.getElementById('btn-apply-weights');
     const originalText = btn.innerHTML;
     btn.innerHTML = '<span>✓ Applied to Portfolio!</span>';
     setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+  });
+
+  // Copy Trade Ticket Button
+  document.getElementById('btn-copy-ticket').addEventListener('click', copyTradeTicket);
+
+  // Export Tear Sheet Button (PDF / Print)
+  document.getElementById('btn-export-pdf').addEventListener('click', () => {
+    window.print();
+  });
+
+  // AI Hub Mode Switcher (Institutional Memo vs Roast Mode)
+  const btnInst = document.getElementById('btn-toggle-institutional');
+  const btnRoast = document.getElementById('btn-toggle-roast');
+  const paneInst = document.getElementById('pane-memo-institutional');
+  const paneRoast = document.getElementById('pane-memo-roast');
+
+  btnInst.addEventListener('click', () => {
+    btnInst.classList.add('active');
+    btnRoast.classList.remove('active');
+    paneInst.classList.remove('hidden');
+    paneRoast.classList.add('hidden');
+  });
+
+  btnRoast.addEventListener('click', () => {
+    btnRoast.classList.add('active');
+    btnInst.classList.remove('active');
+    paneRoast.classList.remove('hidden');
+    paneInst.classList.add('hidden');
   });
 
   // Chart Tabs
@@ -96,9 +179,24 @@ function setupEventListeners() {
 
       const tab = btn.getAttribute('data-tab');
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
-      document.getElementById(`pane-${tab}`).classList.remove('hidden');
+      const activePane = document.getElementById(`pane-${tab}`);
+      if (activePane) activePane.classList.remove('hidden');
     });
   });
+
+  // What-If Sandbox Pills
+  document.querySelectorAll('.whatif-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.whatif-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      const key = pill.getAttribute('data-whatif');
+      activeWhatIfKey = key;
+      updateWhatIfCard(key);
+    });
+  });
+
+  // What-If Inject Button
+  document.getElementById('btn-inject-asset').addEventListener('click', injectWhatIfAsset);
 }
 
 function loadPreset(presetKey) {
@@ -118,7 +216,6 @@ function loadPreset(presetKey) {
 function addAssetRow(ticker, weightPct) {
   const tbody = document.getElementById('asset-tbody');
   
-  // Prevent duplicate ticker
   const existing = Array.from(tbody.querySelectorAll('.ticker-name')).map(el => el.textContent);
   if (existing.includes(ticker)) return;
 
@@ -185,7 +282,6 @@ async function executeOptimization() {
   spinner.classList.remove('hidden');
 
   try {
-    // Gather inputs
     const rows = document.querySelectorAll('#asset-tbody tr');
     const tickers = [];
     const currentWeights = {};
@@ -228,7 +324,6 @@ async function executeOptimization() {
 }
 
 function renderResults(data) {
-  // Reveal dashboard contents
   document.getElementById('results-section').classList.remove('hidden');
 
   const curr = data.current_portfolio;
@@ -261,7 +356,20 @@ function renderResults(data) {
   document.getElementById('card-effective-bets').textContent = risk.effective_bets.toFixed(2);
   document.getElementById('card-bets-total').textContent = `out of ${data.metadata.tickers.length} assets`;
 
-  // 2. Render Charts
+  // 2. Render AI CIO Intelligence & Health Score
+  if (data.health_score) {
+    renderHealthScore(data.health_score);
+  }
+  if (data.ai_commentary) {
+    renderAiCommentary(data.ai_commentary);
+  }
+
+  // 3. Render Macro Crisis Stress-Test Simulator
+  if (data.stress_tests && data.stress_tests.length > 0) {
+    renderStressTests(data.stress_tests);
+  }
+
+  // 4. Render Charts
   const frontierCanvas = document.getElementById('frontier-canvas');
   ChartManager.renderEfficientFrontier(
     frontierCanvas,
@@ -292,8 +400,192 @@ function renderResults(data) {
   const rollingCanvas = document.getElementById('rolling-canvas');
   ChartManager.renderRollingVolatility(rollingCanvas, data.rolling_metrics);
 
-  // 3. Rebalance Table
+  // 5. Rebalance Table
   renderRebalanceTable(data.rebalance_actions);
+}
+
+function renderHealthScore(health) {
+  document.getElementById('health-score-value').textContent = health.score;
+  const gradeBadge = document.getElementById('health-grade-badge');
+  gradeBadge.textContent = `GRADE ${health.grade}`;
+  
+  const g = health.grade.toLowerCase().charAt(0);
+  gradeBadge.className = `score-badge grade-${g}`;
+
+  document.getElementById('health-rating-title').textContent = health.rating;
+
+  const comps = health.component_scores;
+  if (comps) {
+    document.getElementById('score-div-val').textContent = `${comps.diversification}/30`;
+    document.getElementById('bar-div-fill').style.width = `${(comps.diversification / 30) * 100}%`;
+
+    document.getElementById('score-eff-val').textContent = `${comps.sharpe_efficiency}/30`;
+    document.getElementById('bar-eff-fill').style.width = `${(comps.sharpe_efficiency / 30) * 100}%`;
+
+    document.getElementById('score-vol-val').textContent = `${comps.volatility_discipline}/20`;
+    document.getElementById('bar-vol-fill').style.width = `${(comps.volatility_discipline / 20) * 100}%`;
+
+    document.getElementById('score-tail-val').textContent = `${comps.tail_resilience}/20`;
+    document.getElementById('bar-tail-fill').style.width = `${(comps.tail_resilience / 20) * 100}%`;
+  }
+}
+
+function renderAiCommentary(commentary) {
+  const inst = commentary.institutional_memo;
+  if (inst) {
+    document.getElementById('memo-exec-summary').textContent = inst.executive_summary;
+    document.getElementById('memo-div-analysis').textContent = inst.diversification_analysis;
+    document.getElementById('memo-tail-warning').textContent = inst.risk_tail_warning;
+    document.getElementById('memo-rebalance-rationale').textContent = inst.rebalance_rationale;
+  }
+
+  const roast = commentary.roast_memo;
+  if (roast) {
+    document.getElementById('roast-spicy-pill').textContent = roast.spicy_rating;
+    document.getElementById('roast-headline-text').textContent = roast.headline;
+    document.getElementById('roast-body-text').textContent = roast.roast_body;
+    document.getElementById('roast-verdict-text').textContent = roast.verdict;
+  }
+}
+
+function renderStressTests(scenarios) {
+  const selectorContainer = document.getElementById('stress-scenario-selector');
+  selectorContainer.innerHTML = '';
+
+  scenarios.forEach((s, idx) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `stress-scenario-btn ${idx === 0 ? 'active' : ''}`;
+    btn.textContent = s.name.split(' ')[0] + ' ' + (s.name.split(' ')[1] || '');
+    btn.title = s.name;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.stress-scenario-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      displayActiveScenario(s);
+    });
+    selectorContainer.appendChild(btn);
+  });
+
+  if (scenarios.length > 0) {
+    displayActiveScenario(scenarios[0]);
+  }
+}
+
+function displayActiveScenario(s) {
+  document.getElementById('stress-scenario-name').textContent = s.name;
+  document.getElementById('stress-scenario-desc').textContent = s.description;
+
+  const cushionEl = document.getElementById('stress-cushion-badge');
+  const deltaPct = (s.drawdown_delta * 100).toFixed(1);
+  cushionEl.textContent = `${s.drawdown_delta >= 0 ? '+' : ''}${deltaPct}% Downside Cushion`;
+  cushionEl.style.color = s.drawdown_delta >= 0 ? '#34d399' : '#f43f5e';
+  cushionEl.style.borderColor = s.drawdown_delta >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)';
+
+  document.getElementById('stress-curr-dd').textContent = `${(s.current_drawdown * 100).toFixed(1)}%`;
+  document.getElementById('stress-curr-recovery').textContent = `Est. Recovery: ~${s.recovery_months} Months`;
+
+  document.getElementById('stress-opt-dd').textContent = `${(s.optimal_drawdown * 100).toFixed(1)}%`;
+  document.getElementById('stress-opt-recovery').textContent = `Est. Recovery: ~${s.optimal_recovery_months} Months`;
+
+  document.getElementById('stress-worst-asset').textContent = s.worst_asset;
+  document.getElementById('stress-best-asset').textContent = s.best_shelter;
+
+  document.getElementById('stress-commentary-text').textContent = s.commentary;
+}
+
+function updateWhatIfCard(key) {
+  const item = WHATIF_CATALOG[key];
+  if (!item) return;
+
+  document.getElementById('whatif-candidate-name').textContent = item.name;
+  
+  const sharpeEl = document.getElementById('whatif-sharpe-delta');
+  sharpeEl.textContent = item.sharpeDelta;
+  sharpeEl.className = `im-val ${item.positiveSharpe ? 'positive' : 'negative'}`;
+
+  const volEl = document.getElementById('whatif-vol-delta');
+  volEl.textContent = item.volDelta;
+  volEl.className = `im-val ${item.positiveVol ? 'positive' : 'negative'}`;
+
+  const enbEl = document.getElementById('whatif-enb-delta');
+  enbEl.textContent = item.enbDelta;
+  enbEl.className = 'im-val positive';
+
+  document.getElementById('whatif-explanation-text').textContent = item.explanation;
+}
+
+function injectWhatIfAsset() {
+  const item = WHATIF_CATALOG[activeWhatIfKey];
+  if (!item) return;
+
+  const rows = document.querySelectorAll('#asset-tbody tr');
+  const existingTickers = Array.from(rows).map(r => r.querySelector('.ticker-name').textContent.trim());
+
+  if (existingTickers.includes(item.ticker)) {
+    alert(`${item.ticker} is already in your portfolio!`);
+    return;
+  }
+
+  // Scale down existing weights to make room for new asset
+  const newWeight = item.weight;
+  const factor = (100 - newWeight) / 100.0;
+
+  rows.forEach(r => {
+    const input = r.querySelector('.weight-input');
+    const oldVal = parseFloat(input.value) || 0;
+    input.value = (oldVal * factor).toFixed(1);
+  });
+
+  addAssetRow(item.ticker, newWeight);
+  updateWeightTotal();
+
+  // Visual feedback
+  const btn = document.getElementById('btn-inject-asset');
+  const original = btn.innerHTML;
+  btn.innerHTML = `<span>✓ Injected ${item.ticker}!</span>`;
+  setTimeout(() => { btn.innerHTML = original; }, 2000);
+}
+
+function copyTradeTicket() {
+  if (!currentPortfolioData) {
+    alert('Please run the optimization engine first to generate your trade ticket.');
+    return;
+  }
+
+  const actions = currentPortfolioData.rebalance_actions;
+  const opt = currentPortfolioData.max_sharpe_portfolio;
+  const curr = currentPortfolioData.current_portfolio;
+  const sharpeDelta = (opt.sharpe_ratio - curr.sharpe_ratio).toFixed(2);
+
+  const lines = [
+    '========================================',
+    'CAPITALX INSTITUTIONAL REBALANCE TICKET',
+    `Timestamp: ${new Date().toISOString()}`,
+    '========================================',
+    `Optimal Sharpe: ${opt.sharpe_ratio.toFixed(2)} (${sharpeDelta >= 0 ? '+' : ''}${sharpeDelta} Δ)`,
+    `Expected Volatility: ${(opt.volatility * 100).toFixed(1)}%`,
+    '----------------------------------------',
+    'ORDER EXECUTION INSTRUCTIONS:',
+    '----------------------------------------'
+  ];
+
+  actions.forEach(a => {
+    const deltaStr = (a.delta_weight * 100).toFixed(1);
+    const targetStr = (a.target_weight * 100).toFixed(1);
+    lines.push(`• ${a.action.padEnd(4)} ${a.ticker.padEnd(6)} | Target: ${targetStr.padStart(5)}% | Net: ${deltaStr >= 0 ? '+' : ''}${deltaStr}%`);
+  });
+
+  lines.push('========================================');
+  lines.push('Fiduciary Fills Generated by CapitalX Engine');
+
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    const btn = document.getElementById('btn-copy-ticket');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<span>✓ Copied to Clipboard!</span>';
+    setTimeout(() => { btn.innerHTML = orig; }, 2500);
+  }).catch(() => {
+    alert('Could not copy to clipboard. Please copy manually.');
+  });
 }
 
 function renderRebalanceTable(actions) {

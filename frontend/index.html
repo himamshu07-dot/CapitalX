@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CapitalX | Quantitative Portfolio Optimization Engine</title>
+  <title>CapitalX | Institutional Portfolio Intelligence & Risk Engine</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
@@ -18,12 +18,16 @@
     <div class="logo-section">
       <div class="logo-icon">X</div>
       <div>
-        <div class="app-title">CapitalX</div>
+        <div class="app-title">CapitalX <span class="badge-tag">TERMINAL v2.5</span></div>
       </div>
-      <span class="tagline">Quantitative Portfolio Optimization & Risk Engine</span>
+      <span class="tagline">Institutional Quantitative Engine & AI Portfolio Intelligence</span>
     </div>
 
-    <div class="header-status">
+    <div class="header-right">
+      <button type="button" id="btn-export-pdf" class="btn-tear-sheet" title="Generate BlackRock-grade 1-page institutional tear sheet">
+        <span>📄 Export Tear Sheet</span>
+      </button>
+
       <div class="status-badge">
         <span class="pulse-dot" id="backend-dot"></span>
         <span id="backend-status-text">Checking Engine...</span>
@@ -35,17 +39,19 @@
   <main class="main-container">
     
     <!-- Left Sidebar: Controls & Asset Allocation Inputs -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar-panel">
       
       <!-- Presets Card -->
       <div class="card">
         <div class="card-title">
           <span>Portfolio Presets</span>
+          <span class="hint-text">1-Click Demos</span>
         </div>
         <div class="preset-buttons">
-          <button type="button" class="btn-chip" data-preset="tech">Tech Megacaps</button>
+          <button type="button" class="btn-chip" data-preset="tech">Tech Megacaps 🔥</button>
           <button type="button" class="btn-chip" data-preset="balanced">Classic 60/40</button>
           <button type="button" class="btn-chip" data-preset="allweather">All-Weather</button>
+          <button type="button" class="btn-chip" data-preset="inflation">Inflation Shield</button>
         </div>
 
         <form id="optimization-form">
@@ -74,7 +80,7 @@
 
           <!-- Add Asset Input -->
           <div style="display: flex; gap: 0.4rem; margin-top: 0.85rem;">
-            <input type="text" id="new-ticker-input" class="input-field" placeholder="Add ticker (e.g. SPY, GLD)" style="text-transform: uppercase;">
+            <input type="text" id="new-ticker-input" class="input-field" placeholder="Add ticker (e.g. SPY, GLD, BTC-USD)" style="text-transform: uppercase;">
             <button type="button" id="btn-add-asset" class="btn-chip" style="padding: 0.5rem 0.8rem; background: rgba(59, 130, 246, 0.2); color: #fff; border-color: var(--accent-blue);">+ Add</button>
           </div>
 
@@ -95,7 +101,7 @@
             <div class="input-group">
               <label class="input-label" for="input-rf">
                 <span>Risk-Free Rate ($R_f$)</span>
-                <span style="font-size: 0.7rem; color: var(--text-dim);">(US Treasury 3M/10Y)</span>
+                <span style="font-size: 0.7rem; color: var(--text-dim);">(US 10Y / 3M)</span>
               </label>
               <input type="number" id="input-rf" class="input-field" value="4.5" step="0.1" min="0" max="15">
             </div>
@@ -118,7 +124,7 @@
 
             <button type="submit" id="btn-optimize-submit" class="btn-primary">
               <span id="optimize-spinner" class="spinner hidden"></span>
-              <span>Run Optimization Engine</span>
+              <span>⚡ Run Institutional Optimization</span>
             </button>
           </div>
         </form>
@@ -176,10 +182,106 @@
         </div>
       </div>
 
+      <!-- 🧠 AI INTELLIGENCE & PORTFOLIO DIAGNOSTIC HUB -->
+      <div class="card ai-hub-card" id="ai-hub-container">
+        <div class="ai-hub-header">
+          <div class="ai-hub-title">
+            <div class="ai-pulse-icon">🧠</div>
+            <div>
+              <div class="hub-heading">Portfolio Diagnostic & AI CIO Intelligence</div>
+              <div class="hub-subheading">Plain-English Fiduciary Teardown vs FinTwit Roast</div>
+            </div>
+          </div>
+
+          <!-- Mode Switcher -->
+          <div class="memo-toggle-group">
+            <button type="button" class="memo-toggle-btn active" id="btn-toggle-institutional">
+              <span>🏛️ Institutional Memo</span>
+            </button>
+            <button type="button" class="memo-toggle-btn" id="btn-toggle-roast">
+              <span>🌶️ Roast My Portfolio</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Health Score Widget Bar -->
+        <div class="health-score-banner">
+          <div class="score-display">
+            <div class="score-number-wrapper">
+              <span class="score-number" id="health-score-value">--</span>
+              <span class="score-scale">/100</span>
+            </div>
+            <div class="score-badge" id="health-grade-badge">--</div>
+          </div>
+
+          <div class="score-details">
+            <div class="score-rating-title" id="health-rating-title">Analyzing portfolio health...</div>
+            <div class="health-breakdown-bars">
+              <div class="bar-col">
+                <div class="bar-label"><span>Diversification</span><span id="score-div-val">--</span></div>
+                <div class="bar-track"><div class="bar-fill" id="bar-div-fill" style="width: 0%"></div></div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-label"><span>Sharpe Efficiency</span><span id="score-eff-val">--</span></div>
+                <div class="bar-track"><div class="bar-fill" id="bar-eff-fill" style="width: 0%"></div></div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-label"><span>Volatility Drag</span><span id="score-vol-val">--</span></div>
+                <div class="bar-track"><div class="bar-fill" id="bar-vol-fill" style="width: 0%"></div></div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-label"><span>Tail Resilience</span><span id="score-tail-val">--</span></div>
+                <div class="bar-track"><div class="bar-fill" id="bar-tail-fill" style="width: 0%"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode Content 1: Institutional CIO Memo -->
+        <div class="memo-content-box" id="pane-memo-institutional">
+          <div class="memo-section">
+            <div class="memo-section-title">Executive Fiduciary Summary</div>
+            <p id="memo-exec-summary" class="memo-body">Run optimization to generate an institutional investment summary...</p>
+          </div>
+
+          <div class="memo-grid-2col">
+            <div class="memo-section callout-card warning">
+              <div class="memo-section-title">Eigenvalue & Factor Orthogonality</div>
+              <p id="memo-div-analysis" class="memo-body">--</p>
+            </div>
+            <div class="memo-section callout-card danger">
+              <div class="memo-section-title">Tail-Risk & Liquidity Exposure</div>
+              <p id="memo-tail-warning" class="memo-body">--</p>
+            </div>
+          </div>
+
+          <div class="memo-section callout-card action">
+            <div class="memo-section-title">Strategic Rebalance Thesis</div>
+            <p id="memo-rebalance-rationale" class="memo-body">--</p>
+          </div>
+        </div>
+
+        <!-- Mode Content 2: WallStreetBets / FinTwit Roast -->
+        <div class="memo-content-box hidden" id="pane-memo-roast">
+          <div class="roast-banner">
+            <div class="roast-header-row">
+              <span class="roast-pill" id="roast-spicy-pill">🌶️🌶️🌶️ Extreme Roast</span>
+              <span class="roast-stamp">FIN-TWIT VERIFIED</span>
+            </div>
+            <h3 class="roast-headline" id="roast-headline-text">"The 'I Learned Investing on TikTok' Portfolio"</h3>
+            <p class="roast-body" id="roast-body-text">Loading roast analysis...</p>
+            <div class="roast-verdict" id="roast-verdict-text">Verdict: Stop gambling and let the optimizer take the wheel.</div>
+          </div>
+        </div>
+
+      </div>
+
       <!-- Tabbed Visualizations Container -->
       <div class="charts-container">
         <div class="chart-tabs">
           <button type="button" class="tab-btn active" data-tab="frontier">Efficient Frontier</button>
+          <button type="button" class="tab-btn" data-tab="stress">Macro Crisis Stress-Test 💥</button>
+          <button type="button" class="tab-btn" data-tab="whatif">What-If Sandbox 🎛️</button>
           <button type="button" class="tab-btn" data-tab="heatmap">Correlation Matrix</button>
           <button type="button" class="tab-btn" data-tab="volatility">Asset Volatilities</button>
           <button type="button" class="tab-btn" data-tab="rolling">Rolling Stress Volatility</button>
@@ -192,21 +294,127 @@
           </div>
         </div>
 
-        <!-- Pane 2: Correlation Heatmap -->
+        <!-- Pane 2: Macro Crisis Stress-Test -->
+        <div class="tab-pane hidden" id="pane-stress">
+          <div class="stress-container">
+            <div class="stress-header">
+              <div>
+                <h4 style="margin: 0 0 0.25rem 0; font-size: 0.95rem; color: #fff;">Historical Market Crash Replay</h4>
+                <p style="margin: 0; font-size: 0.78rem; color: var(--text-dim);">Simulates your exact portfolio through the 5 largest historical liquidity and inflation shocks.</p>
+              </div>
+              <div class="stress-scenario-selector" id="stress-scenario-selector">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <!-- Active Stress Scenario Card -->
+            <div class="stress-detail-card" id="stress-detail-card">
+              <div class="stress-detail-header">
+                <div>
+                  <h3 id="stress-scenario-name" style="margin: 0 0 0.25rem 0; color: #fff; font-size: 1.1rem;">2020 COVID-19 Liquidity Shock</h3>
+                  <p id="stress-scenario-desc" style="margin: 0; color: var(--text-muted); font-size: 0.8rem;">Rapid systemic market shutdown...</p>
+                </div>
+                <div class="cushion-badge" id="stress-cushion-badge">+8.4% Downside Cushion</div>
+              </div>
+
+              <!-- Drawdown Comparison Bars -->
+              <div class="drawdown-comparison-grid">
+                <div class="dd-box curr">
+                  <div class="dd-title">Current Portfolio Drawdown</div>
+                  <div class="dd-value" id="stress-curr-dd">-24.5%</div>
+                  <div class="dd-sub" id="stress-curr-recovery">Est. Recovery: ~10 Months</div>
+                </div>
+
+                <div class="dd-box opt">
+                  <div class="dd-title">Optimized Portfolio Drawdown</div>
+                  <div class="dd-value" id="stress-opt-dd">-16.1%</div>
+                  <div class="dd-sub" id="stress-opt-recovery">Est. Recovery: ~4 Months</div>
+                </div>
+
+                <div class="dd-box asset-highlights">
+                  <div class="highlight-row">
+                    <span class="hl-label">Worst Hit Asset:</span>
+                    <span class="hl-val worst" id="stress-worst-asset">--</span>
+                  </div>
+                  <div class="highlight-row">
+                    <span class="hl-label">Best Safe Haven:</span>
+                    <span class="hl-val safe" id="stress-best-asset">--</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="stress-commentary-box">
+                <span class="info-icon">💡</span>
+                <span id="stress-commentary-text">Evaluating stress recovery dynamics...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pane 3: Interactive What-If Sandbox -->
+        <div class="tab-pane hidden" id="pane-whatif">
+          <div class="whatif-container">
+            <div class="whatif-header">
+              <div>
+                <h4 style="margin: 0 0 0.25rem 0; font-size: 0.95rem; color: #fff;">Interactive "What-If" Portfolio Sandbox</h4>
+                <p style="margin: 0; font-size: 0.78rem; color: var(--text-dim);">Test how adding orthogonal asset classes alters your Sharpe frontier and tail protection in real time.</p>
+              </div>
+            </div>
+
+            <div class="whatif-pills-row">
+              <span style="font-size: 0.8rem; color: var(--text-muted); align-self: center;">Test Injections:</span>
+              <button type="button" class="btn-chip whatif-pill" data-whatif="gld">+ 10% Gold (GLD)</button>
+              <button type="button" class="btn-chip whatif-pill" data-whatif="tlt">+ 15% Long Treasuries (TLT)</button>
+              <button type="button" class="btn-chip whatif-pill" data-whatif="btc">+ 5% Bitcoin (BTC-USD)</button>
+              <button type="button" class="btn-chip whatif-pill" data-whatif="cash">+ 15% Cash (BIL)</button>
+            </div>
+
+            <!-- Projected Impact Card -->
+            <div class="whatif-impact-card" id="whatif-impact-card">
+              <div class="impact-title-row">
+                <span id="whatif-candidate-name">Selected: +10% Gold (GLD)</span>
+                <button type="button" id="btn-inject-asset" class="btn-chip" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: #10b981;">
+                  <span>⚡ Inject into Portfolio Table</span>
+                </button>
+              </div>
+
+              <div class="impact-metrics-row">
+                <div class="impact-metric">
+                  <div class="im-label">Projected Sharpe Delta</div>
+                  <div class="im-val positive" id="whatif-sharpe-delta">+0.14 Sharpe</div>
+                </div>
+                <div class="impact-metric">
+                  <div class="im-label">Projected Volatility Delta</div>
+                  <div class="im-val positive" id="whatif-vol-delta">-1.8% Risk</div>
+                </div>
+                <div class="impact-metric">
+                  <div class="im-label">Effective Bets Improvement</div>
+                  <div class="im-val positive" id="whatif-enb-delta">+0.7 Bets</div>
+                </div>
+              </div>
+
+              <p class="whatif-explanation" id="whatif-explanation-text">
+                Adding Gold introduces non-correlated commodity risk, offsetting equity valuation compressions and dampening portfolio drawdown during liquidity crunches.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pane 4: Correlation Heatmap -->
         <div class="tab-pane hidden" id="pane-heatmap">
           <div id="heatmap-container" class="heatmap-container">
             <!-- Rendered by ChartManager -->
           </div>
         </div>
 
-        <!-- Pane 3: Asset Volatility Bar Chart -->
+        <!-- Pane 5: Asset Volatility Bar Chart -->
         <div class="tab-pane hidden" id="pane-volatility">
           <div class="chart-wrapper">
             <canvas id="volatility-canvas"></canvas>
           </div>
         </div>
 
-        <!-- Pane 4: Rolling Volatility -->
+        <!-- Pane 6: Rolling Volatility -->
         <div class="tab-pane hidden" id="pane-rolling">
           <div class="chart-wrapper">
             <canvas id="rolling-canvas"></canvas>
@@ -218,7 +426,10 @@
       <div class="rebalance-section">
         <div class="card">
           <div class="card-title">
-            <span>Portfolio Rebalancing & Allocation Breakdown</span>
+            <span>Portfolio Rebalancing & Trade Execution Ticket</span>
+            <button type="button" id="btn-copy-ticket" class="btn-chip" title="Copy broker-ready orders to clipboard">
+              <span>📋 Copy Trade Ticket</span>
+            </button>
           </div>
           <table class="rebalance-table">
             <thead>

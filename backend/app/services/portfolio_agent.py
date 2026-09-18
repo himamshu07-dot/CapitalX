@@ -40,7 +40,13 @@ from app.models.response import (
     RebalanceAction,
     RiskMetricsResponse,
     RollingMetricsResponse,
+    HealthScore,
+    AiCommentary,
+    InstitutionalMemo,
+    RoastMemo,
+    StressTestScenario,
 )
+from app.services.ai_diagnostics import DiagnosticsEngine
 from app.services.data_ingestion import MarketDataService
 
 # ── Optional heavy imports with graceful fallback ────────────────────
@@ -931,6 +937,40 @@ class PortfolioAgent:
                 sortino_ratio=round(sortino, 4) if sortino is not None else None,
             )
 
+        # ── 13. AI Diagnostics, Health Score & Crisis Stress Testing ──
+        curr_w_dict = _w_dict(w_curr)
+        opt_w_dict = _w_dict(w_ms)
+        health_dict = DiagnosticsEngine.calculate_health_score(
+            effective_bets=enb,
+            num_assets=N,
+            curr_sharpe=m_curr[2],
+            opt_sharpe=m_ms[2],
+            curr_vol=m_curr[1],
+            max_drawdown=tail.get("max_drawdown"),
+            var_95=tail.get("var_95"),
+        )
+        stress_list = DiagnosticsEngine.run_stress_simulations(
+            tickers=valid_tickers,
+            curr_weights=curr_w_dict,
+            opt_weights=opt_w_dict,
+            ann_vols=ann_vols,
+        )
+        memos_dict = DiagnosticsEngine.generate_plain_english_memos(
+            tickers=valid_tickers,
+            curr_weights=curr_w_dict,
+            opt_weights=opt_w_dict,
+            curr_ret=m_curr[0],
+            curr_vol=m_curr[1],
+            curr_sharpe=m_curr[2],
+            opt_ret=m_ms[0],
+            opt_vol=m_ms[1],
+            opt_sharpe=m_ms[2],
+            effective_bets=enb,
+            health_score=health_dict,
+            rebalance_actions=rebalance,
+            stress_tests=stress_list,
+        )
+
         return OptimizationResponse(
             status="success",
             metadata=OptimizationMetadata(
@@ -974,4 +1014,10 @@ class PortfolioAgent:
                 for p in frontier_data
             ],
             rolling_metrics=rolling,
+            health_score=HealthScore(**health_dict),
+            ai_commentary=AiCommentary(
+                institutional_memo=InstitutionalMemo(**memos_dict["institutional_memo"]),
+                roast_memo=RoastMemo(**memos_dict["roast_memo"]),
+            ),
+            stress_tests=[StressTestScenario(**s) for s in stress_list],
         )

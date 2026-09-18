@@ -55,6 +55,45 @@ class RollingMetricsResponse(BaseModel):
     max_sharpe_vol: List[Optional[float]]
     asset_rolling_vols: Dict[str, List[Optional[float]]]
 
+class HealthScore(BaseModel):
+    score: int = Field(..., description="Overall portfolio health score (0-100)")
+    grade: str = Field(..., description="Letter grade (A+, A, B, C, D, F)")
+    rating: str = Field(..., description="Qualitative health assessment")
+    component_scores: Dict[str, float] = Field(..., description="Breakdown: diversification, efficiency, volatility, tail resilience")
+
+class InstitutionalMemo(BaseModel):
+    title: str
+    health_grade: str
+    health_rating: str
+    executive_summary: str
+    diversification_analysis: str
+    risk_tail_warning: str
+    rebalance_rationale: str
+
+class RoastMemo(BaseModel):
+    title: str
+    headline: str
+    roast_body: str
+    verdict: str
+    spicy_rating: str
+
+class AiCommentary(BaseModel):
+    institutional_memo: InstitutionalMemo
+    roast_memo: RoastMemo
+
+class StressTestScenario(BaseModel):
+    scenario_id: str
+    name: str
+    description: str
+    current_drawdown: float
+    optimal_drawdown: float
+    drawdown_delta: float
+    worst_asset: str
+    best_shelter: str
+    recovery_months: int
+    optimal_recovery_months: int
+    commentary: str
+
 class OptimizationResponse(BaseModel):
     status: str = "success"
     metadata: OptimizationMetadata
@@ -68,3 +107,7 @@ class OptimizationResponse(BaseModel):
     # ── New optional multi-strategy portfolios (backward-compatible) ──
     risk_parity_portfolio: Optional[PortfolioSummary] = Field(default=None, description="Equal Risk Contribution portfolio")
     hrp_portfolio: Optional[PortfolioSummary] = Field(default=None, description="Hierarchical Risk Parity portfolio")
+    # ── Plain-English Intelligence & Crisis Analytics ──
+    health_score: Optional[HealthScore] = Field(default=None, description="Quantitative portfolio health rating and score (0-100)")
+    ai_commentary: Optional[AiCommentary] = Field(default=None, description="Institutional CIO memo and FinTwit roast commentary")
+    stress_tests: Optional[List[StressTestScenario]] = Field(default=None, description="Historical macro crisis stress simulations")
