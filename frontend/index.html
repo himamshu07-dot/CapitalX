@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CapitalX | Quantitative Portfolio Optimization Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="logo-section">
+      <div class="logo-icon">X</div>
+      <div>
+        <div class="app-title">CapitalX</div>
+      </div>
+      <span class="tagline">Quantitative Portfolio Optimization & Risk Engine</span>
+    </div>
+
+    <div class="header-status">
+      <div class="status-badge">
+        <span class="pulse-dot" id="backend-dot"></span>
+        <span id="backend-status-text">Checking Engine...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+    
+    <!-- Left Sidebar: Controls & Asset Allocation Inputs -->
+    <aside class="sidebar">
+      
+      <!-- Presets Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>Portfolio Presets</span>
+        </div>
+        <div class="preset-buttons">
+          <button type="button" class="btn-chip" data-preset="tech">Tech Megacaps</button>
+          <button type="button" class="btn-chip" data-preset="balanced">Classic 60/40</button>
+          <button type="button" class="btn-chip" data-preset="allweather">All-Weather</button>
+        </div>
+
+        <form id="optimization-form">
+          <!-- Asset Table -->
+          <div class="card-title" style="margin-top: 1rem; font-size: 0.88rem;">
+            <span>Current Asset Allocations</span>
+          </div>
+          
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th style="text-align: right;">Weight</th>
+                <th style="text-align: center; width: 35px;"></th>
+              </tr>
+            </thead>
+            <tbody id="asset-tbody">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+
+          <div class="weight-summary">
+            <span>Total Allocation:</span>
+            <span id="weight-total-display" class="weight-valid">100.0%</span>
+          </div>
+
+          <!-- Add Asset Input -->
+          <div style="display: flex; gap: 0.4rem; margin-top: 0.85rem;">
+            <input type="text" id="new-ticker-input" class="input-field" placeholder="Add ticker (e.g. SPY, GLD)" style="text-transform: uppercase;">
+            <button type="button" id="btn-add-asset" class="btn-chip" style="padding: 0.5rem 0.8rem; background: rgba(59, 130, 246, 0.2); color: #fff; border-color: var(--accent-blue);">+ Add</button>
+          </div>
+
+          <!-- Quantitative Parameters -->
+          <div style="margin-top: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+            <div class="input-group">
+              <label class="input-label" for="input-lookback">
+                <span>Historical Lookback Window</span>
+              </label>
+              <select id="input-lookback" class="input-field">
+                <option value="1">1 Year</option>
+                <option value="2">2 Years</option>
+                <option value="3" selected>3 Years (Recommended)</option>
+                <option value="5">5 Years</option>
+              </select>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label" for="input-rf">
+                <span>Risk-Free Rate ($R_f$)</span>
+                <span style="font-size: 0.7rem; color: var(--text-dim);">(US Treasury 3M/10Y)</span>
+              </label>
+              <input type="number" id="input-rf" class="input-field" value="4.5" step="0.1" min="0" max="15">
+            </div>
+
+            <div class="input-group">
+              <label class="input-label" for="input-max-weight">
+                <span>Max Allocation Cap per Asset</span>
+              </label>
+              <select id="input-max-weight" class="input-field">
+                <option value="100" selected>No Cap (100%)</option>
+                <option value="50">50% Max</option>
+                <option value="40">40% Max</option>
+                <option value="30">30% Max</option>
+                <option value="25">25% Max</option>
+              </select>
+            </div>
+
+            <!-- Error Banner -->
+            <div id="error-alert" class="hidden" style="background: rgba(244, 63, 94, 0.15); border: 1px solid var(--accent-rose); color: #fecdd3; padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.78rem; margin-bottom: 1rem;"></div>
+
+            <button type="submit" id="btn-optimize-submit" class="btn-primary">
+              <span id="optimize-spinner" class="spinner hidden"></span>
+              <span>Run Optimization Engine</span>
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </aside>
+
+    <!-- Right Panel: Quantitative Visualizations & Actionability Dashboard -->
+    <section class="dashboard-content" id="results-section">
+      
+      <!-- Key Quantitative Metrics Grid -->
+      <div class="metrics-grid">
+        <div class="metric-card emerald">
+          <div class="metric-label">
+            <span>Optimal Sharpe Ratio</span>
+            <span id="badge-sharpe-delta" class="delta-badge positive">+0.00 Δ</span>
+          </div>
+          <div class="metric-value" id="card-opt-sharpe">--</div>
+          <div class="metric-sub">
+            <span>Current: <strong id="card-curr-sharpe">--</strong></span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">
+            <span>Annualized Volatility ($\sigma_p$)</span>
+            <span id="badge-vol-delta" class="delta-badge">--</span>
+          </div>
+          <div class="metric-value" id="card-opt-vol">--</div>
+          <div class="metric-sub">
+            <span>Expected Annual Risk</span>
+          </div>
+        </div>
+
+        <div class="metric-card amber">
+          <div class="metric-label">
+            <span>Expected Annual Return ($\mu_p$)</span>
+            <span id="badge-return-delta" class="delta-badge">--</span>
+          </div>
+          <div class="metric-value" id="card-opt-return">--</div>
+          <div class="metric-sub">
+            <span>Annualized Compounded Mean</span>
+          </div>
+        </div>
+
+        <div class="metric-card purple">
+          <div class="metric-label" title="Effective Number of Bets derived from correlation matrix eigenvalues via Shannon entropy">
+            <span>Effective Bets ($N_{\text{eff}}$)</span>
+            <span style="font-size: 0.65rem; color: var(--accent-purple); cursor: help;">INFO ⓘ</span>
+          </div>
+          <div class="metric-value" id="card-effective-bets">--</div>
+          <div class="metric-sub">
+            <span id="card-bets-total">Eigenvalue Shannon entropy</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabbed Visualizations Container -->
+      <div class="charts-container">
+        <div class="chart-tabs">
+          <button type="button" class="tab-btn active" data-tab="frontier">Efficient Frontier</button>
+          <button type="button" class="tab-btn" data-tab="heatmap">Correlation Matrix</button>
+          <button type="button" class="tab-btn" data-tab="volatility">Asset Volatilities</button>
+          <button type="button" class="tab-btn" data-tab="rolling">Rolling Stress Volatility</button>
+        </div>
+
+        <!-- Pane 1: Efficient Frontier -->
+        <div class="tab-pane" id="pane-frontier">
+          <div class="chart-wrapper">
+            <canvas id="frontier-canvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Pane 2: Correlation Heatmap -->
+        <div class="tab-pane hidden" id="pane-heatmap">
+          <div id="heatmap-container" class="heatmap-container">
+            <!-- Rendered by ChartManager -->
+          </div>
+        </div>
+
+        <!-- Pane 3: Asset Volatility Bar Chart -->
+        <div class="tab-pane hidden" id="pane-volatility">
+          <div class="chart-wrapper">
+            <canvas id="volatility-canvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Pane 4: Rolling Volatility -->
+        <div class="tab-pane hidden" id="pane-rolling">
+          <div class="chart-wrapper">
+            <canvas id="rolling-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rebalance Actionability & Comparison Table -->
+      <div class="rebalance-section">
+        <div class="card">
+          <div class="card-title">
+            <span>Portfolio Rebalancing & Allocation Breakdown</span>
+          </div>
+          <table class="rebalance-table">
+            <thead>
+              <tr>
+                <th>Asset</th>
+                <th>Current %</th>
+                <th>Optimized %</th>
+                <th>Delta ($\Delta w$)</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="rebalance-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Action Card -->
+        <div class="card apply-card">
+          <div>
+            <div class="card-title">Execute Rebalance</div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;">
+              Transfer the mathematical tangency weights into your active portfolio parameters with one click.
+            </p>
+          </div>
+
+          <button type="button" id="btn-apply-weights" class="btn-secondary">
+            <span>⚡ Apply Optimized Weights</span>
+          </button>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- App Entrypoint Script -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
