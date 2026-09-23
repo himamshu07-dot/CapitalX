@@ -223,7 +223,7 @@ function addAssetRow(ticker, weightPct) {
   tr.innerHTML = `
     <td><strong class="ticker-name">${ticker}</strong></td>
     <td style="text-align: right;">
-      <input type="number" class="weight-input" min="0" max="100" step="1" value="${weightPct.toFixed(1)}"> %
+      <input type="number" class="weight-input" min="0" max="100" step="any" value="${weightPct.toFixed(1)}"> %
     </td>
     <td style="text-align: center;">
       <button type="button" class="btn-chip btn-remove-asset" title="Remove" style="color: var(--accent-rose);">&times;</button>
