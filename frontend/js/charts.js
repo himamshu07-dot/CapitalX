@@ -34,8 +34,8 @@ export class ChartManager {
       {
         label: 'Efficient Frontier Curve',
         data: frontierScatter,
-        borderColor: '#38bdf8',
-        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+        borderColor: '#00E5FF',
+        backgroundColor: 'rgba(0, 229, 255, 0.08)',
         borderWidth: 2.5,
         fill: false,
         tension: 0.3,
@@ -51,7 +51,7 @@ export class ChartManager {
           y: +(maxSharpePort.expected_return * 100).toFixed(2),
           sharpe: maxSharpePort.sharpe_ratio
         }],
-        backgroundColor: '#10b981',
+        backgroundColor: '#00FF9D',
         borderColor: '#ffffff',
         borderWidth: 2,
         pointRadius: 9,
@@ -66,7 +66,7 @@ export class ChartManager {
           y: +(minVolPort.expected_return * 100).toFixed(2),
           sharpe: minVolPort.sharpe_ratio
         }],
-        backgroundColor: '#f59e0b',
+        backgroundColor: '#F59E0B',
         borderColor: '#ffffff',
         borderWidth: 2,
         pointRadius: 8,
@@ -81,7 +81,7 @@ export class ChartManager {
           y: +(currentPort.expected_return * 100).toFixed(2),
           sharpe: currentPort.sharpe_ratio
         }],
-        backgroundColor: '#a855f7',
+        backgroundColor: '#B026FF',
         borderColor: '#ffffff',
         borderWidth: 2,
         pointRadius: 8,
@@ -92,7 +92,7 @@ export class ChartManager {
       {
         label: 'Individual Assets',
         data: assetPoints,
-        backgroundColor: '#64748b',
+        backgroundColor: '#64748B',
         pointRadius: 5,
         pointHoverRadius: 8,
         type: 'scatter'
@@ -108,13 +108,13 @@ export class ChartManager {
         plugins: {
           legend: {
             position: 'top',
-            labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } }
+            labels: { color: '#94A3B8', font: { family: 'Inter', size: 11 } }
           },
           tooltip: {
-            backgroundColor: '#1e293b',
-            titleColor: '#f8fafc',
-            bodyColor: '#cbd5e1',
-            borderColor: '#334155',
+            backgroundColor: 'rgba(7, 10, 17, 0.95)',
+            titleColor: '#F8FAFC',
+            bodyColor: '#CBD5E1',
+            borderColor: 'rgba(255,255,255,0.1)',
             borderWidth: 1,
             callbacks: {
               label: function(ctx) {
@@ -131,14 +131,14 @@ export class ChartManager {
         },
         scales: {
           x: {
-            title: { display: true, text: 'Annualized Volatility (Risk) %', color: '#94a3b8', font: { size: 12 } },
-            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-            ticks: { color: '#64748b' }
+            title: { display: true, text: 'Annualized Volatility (Risk) %', color: '#94A3B8', font: { size: 12 } },
+            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+            ticks: { color: '#64748B' }
           },
           y: {
-            title: { display: true, text: 'Annualized Expected Return %', color: '#94a3b8', font: { size: 12 } },
-            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-            ticks: { color: '#64748b' }
+            title: { display: true, text: 'Annualized Expected Return %', color: '#94A3B8', font: { size: 12 } },
+            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+            ticks: { color: '#64748B' }
           }
         }
       }
@@ -178,14 +178,20 @@ export class ChartManager {
         const val = corrMatrix[rowTicker] ? corrMatrix[rowTicker][colTicker] : null;
         if (val !== null && val !== undefined) {
           td.textContent = (+val).toFixed(2);
-          // Diverging color scale: val in [-1, 1]
-          // 1.0 is red/amber (high correlation), 0 is neutral dark blue, negative is green
-          const r = val > 0 ? Math.round(200 * val) : 20;
-          const g = val < 0 ? Math.round(180 * Math.abs(val)) : Math.round(50 * (1 - val));
-          const b = Math.round(120 * (1 - Math.abs(val)));
-          const opacity = Math.max(0.15, Math.abs(val) * 0.7);
-
+          
+          // Quantum Horizon diverging scale
+          const abs = Math.abs(val);
+          const opacity = Math.max(0.15, abs * 0.75);
+          let r, g, b;
+          if (val > 0) {
+            // Cyan tone for positive
+            r = 0; g = Math.round(229 * abs); b = Math.round(255 * abs);
+          } else {
+            // Rose tone for negative
+            r = Math.round(255 * abs); g = Math.round(51 * abs); b = Math.round(102 * abs);
+          }
           td.style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+
           td.style.color = '#ffffff';
           td.title = `${rowTicker} vs ${colTicker}: r = ${(+val).toFixed(3)}`;
         }
@@ -213,15 +219,15 @@ export class ChartManager {
     ];
 
     const backgroundColors = [
-      ...tickers.map(() => 'rgba(56, 189, 248, 0.4)'),
-      'rgba(168, 85, 247, 0.8)',
-      'rgba(16, 185, 129, 0.8)'
+      ...tickers.map(() => 'rgba(0, 229, 255, 0.35)'),
+      'rgba(176, 38, 255, 0.7)',
+      'rgba(0, 255, 157, 0.7)'
     ];
 
     const borderColors = [
-      ...tickers.map(() => '#38bdf8'),
-      '#a855f7',
-      '#10b981'
+      ...tickers.map(() => '#00E5FF'),
+      '#B026FF',
+      '#00FF9D'
     ];
 
     volatilityChartInstance = new Chart(canvas, {
@@ -243,6 +249,11 @@ export class ChartManager {
         plugins: {
           legend: { display: false },
           tooltip: {
+            backgroundColor: 'rgba(7, 10, 17, 0.95)',
+            titleColor: '#F8FAFC',
+            bodyColor: '#CBD5E1',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
             callbacks: {
               label: (ctx) => ` Volatility: ${ctx.parsed.y}%`
             }
@@ -250,13 +261,13 @@ export class ChartManager {
         },
         scales: {
           x: {
-            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-            ticks: { color: '#94a3b8' }
+            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+            ticks: { color: '#64748B' }
           },
           y: {
-            title: { display: true, text: 'Volatility %', color: '#94a3b8' },
-            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-            ticks: { color: '#64748b' }
+            title: { display: true, text: 'Volatility %', color: '#94A3B8' },
+            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+            ticks: { color: '#64748B' }
           }
         }
       }
@@ -275,7 +286,7 @@ export class ChartManager {
       {
         label: 'Current Portfolio Vol',
         data: rollingMetrics.current_portfolio_vol.map(v => v !== null ? +(v * 100).toFixed(2) : null),
-        borderColor: '#a855f7',
+        borderColor: '#B026FF',
         borderWidth: 2,
         tension: 0.2,
         pointRadius: 0
@@ -283,7 +294,7 @@ export class ChartManager {
       {
         label: 'Max Sharpe Portfolio Vol',
         data: rollingMetrics.max_sharpe_vol.map(v => v !== null ? +(v * 100).toFixed(2) : null),
-        borderColor: '#10b981',
+        borderColor: '#00FF9D',
         borderWidth: 2,
         tension: 0.2,
         pointRadius: 0
@@ -302,9 +313,14 @@ export class ChartManager {
         plugins: {
           legend: {
             position: 'top',
-            labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } }
+            labels: { color: '#94A3B8', font: { family: 'Inter', size: 11 } }
           },
           tooltip: {
+            backgroundColor: 'rgba(7, 10, 17, 0.95)',
+            titleColor: '#F8FAFC',
+            bodyColor: '#CBD5E1',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
             callbacks: {
               label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y}%`
             }
@@ -312,13 +328,13 @@ export class ChartManager {
         },
         scales: {
           x: {
-            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-            ticks: { color: '#64748b', maxTicksLimit: 8 }
+            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+            ticks: { color: '#64748B', maxTicksLimit: 8 }
           },
           y: {
-            title: { display: true, text: '63-Day Rolling Volatility %', color: '#94a3b8' },
-            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-            ticks: { color: '#64748b' }
+            title: { display: true, text: '63-Day Rolling Volatility %', color: '#94A3B8' },
+            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+            ticks: { color: '#64748B' }
           }
         }
       }

@@ -1,7 +1,7 @@
 services:
   - type: web
     name: capitalx-backend
-    runtime: python
+    env: python
     region: oregon
     plan: free
     rootDir: backend
@@ -10,5 +10,3 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.8
-      - key: PORT
-        value: 10000

@@ -9,5 +9,3 @@ cvxpy>=1.4.2
 osqp>=0.6.5
 clarabel>=0.7.1
 yfinance>=0.2.36
-pytest>=8.0.0
-httpx>=0.27.0

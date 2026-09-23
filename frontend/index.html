@@ -13,12 +13,12 @@
 </head>
 <body>
 
-  <!-- Top Header Navigation -->
+  <!-- Top Header Navigation — Frosted Glass -->
   <header class="app-header">
     <div class="logo-section">
       <div class="logo-icon">X</div>
       <div>
-        <div class="app-title">CapitalX <span class="badge-tag">TERMINAL v2.5</span></div>
+        <div class="app-title">CapitalX <span class="badge-tag">QUANTUM v3.0</span></div>
       </div>
       <span class="tagline">Institutional Quantitative Engine & AI Portfolio Intelligence</span>
     </div>
@@ -81,11 +81,11 @@
           <!-- Add Asset Input -->
           <div style="display: flex; gap: 0.4rem; margin-top: 0.85rem;">
             <input type="text" id="new-ticker-input" class="input-field" placeholder="Add ticker (e.g. SPY, GLD, BTC-USD)" style="text-transform: uppercase;">
-            <button type="button" id="btn-add-asset" class="btn-chip" style="padding: 0.5rem 0.8rem; background: rgba(59, 130, 246, 0.2); color: #fff; border-color: var(--accent-blue);">+ Add</button>
+            <button type="button" id="btn-add-asset" class="btn-chip" style="padding: 0.5rem 0.8rem; background: rgba(0, 229, 255, 0.12); color: #fff; border-color: rgba(0, 229, 255, 0.35);">+ Add</button>
           </div>
 
           <!-- Quantitative Parameters -->
-          <div style="margin-top: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+          <div style="margin-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
             <div class="input-group">
               <label class="input-label" for="input-lookback">
                 <span>Historical Lookback Window</span>
@@ -100,7 +100,7 @@
 
             <div class="input-group">
               <label class="input-label" for="input-rf">
-                <span>Risk-Free Rate ($R_f$)</span>
+                <span>Risk-Free Rate (Rf)</span>
                 <span style="font-size: 0.7rem; color: var(--text-dim);">(US 10Y / 3M)</span>
               </label>
               <input type="number" id="input-rf" class="input-field" value="4.5" step="0.1" min="0" max="15">
@@ -120,7 +120,7 @@
             </div>
 
             <!-- Error Banner -->
-            <div id="error-alert" class="hidden" style="background: rgba(244, 63, 94, 0.15); border: 1px solid var(--accent-rose); color: #fecdd3; padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.78rem; margin-bottom: 1rem;"></div>
+            <div id="error-alert" class="hidden" style="background: rgba(255, 51, 102, 0.12); border: 1px solid var(--accent-rose); color: #fecdd3; padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.78rem; margin-bottom: 1rem;"></div>
 
             <button type="submit" id="btn-optimize-submit" class="btn-primary">
               <span id="optimize-spinner" class="spinner hidden"></span>
@@ -150,7 +150,7 @@
 
         <div class="metric-card">
           <div class="metric-label">
-            <span>Annualized Volatility ($\sigma_p$)</span>
+            <span>Annualized Volatility (σp)</span>
             <span id="badge-vol-delta" class="delta-badge">--</span>
           </div>
           <div class="metric-value" id="card-opt-vol">--</div>
@@ -161,7 +161,7 @@
 
         <div class="metric-card amber">
           <div class="metric-label">
-            <span>Expected Annual Return ($\mu_p$)</span>
+            <span>Expected Annual Return (μp)</span>
             <span id="badge-return-delta" class="delta-badge">--</span>
           </div>
           <div class="metric-value" id="card-opt-return">--</div>
@@ -172,8 +172,8 @@
 
         <div class="metric-card purple">
           <div class="metric-label" title="Effective Number of Bets derived from correlation matrix eigenvalues via Shannon entropy">
-            <span>Effective Bets ($N_{\text{eff}}$)</span>
-            <span style="font-size: 0.65rem; color: var(--accent-purple); cursor: help;">INFO ⓘ</span>
+            <span>Effective Bets (Neff)</span>
+            <span style="font-size: 0.65rem; color: var(--accent-violet); cursor: help;">INFO ⓘ</span>
           </div>
           <div class="metric-value" id="card-effective-bets">--</div>
           <div class="metric-sub">
@@ -298,7 +298,7 @@
           <div class="stress-container">
             <div class="stress-header">
               <div>
-                <h4 style="margin: 0 0 0.25rem 0; font-size: 0.95rem; color: #fff;">Historical Market Crash Replay</h4>
+                <h4 style="margin: 0 0 0.25rem 0; font-size: 0.95rem; color: #F8FAFC;">Historical Market Crash Replay</h4>
                 <p style="margin: 0; font-size: 0.78rem; color: var(--text-dim);">Simulates your exact portfolio through the 5 largest historical liquidity and inflation shocks.</p>
               </div>
               <div class="stress-scenario-selector" id="stress-scenario-selector">
@@ -310,7 +310,7 @@
             <div class="stress-detail-card" id="stress-detail-card">
               <div class="stress-detail-header">
                 <div>
-                  <h3 id="stress-scenario-name" style="margin: 0 0 0.25rem 0; color: #fff; font-size: 1.1rem;">2020 COVID-19 Liquidity Shock</h3>
+                  <h3 id="stress-scenario-name" style="margin: 0 0 0.25rem 0; color: #F8FAFC; font-size: 1.1rem;">2020 COVID-19 Liquidity Shock</h3>
                   <p id="stress-scenario-desc" style="margin: 0; color: var(--text-muted); font-size: 0.8rem;">Rapid systemic market shutdown...</p>
                 </div>
                 <div class="cushion-badge" id="stress-cushion-badge">+8.4% Downside Cushion</div>
@@ -355,7 +355,7 @@
           <div class="whatif-container">
             <div class="whatif-header">
               <div>
-                <h4 style="margin: 0 0 0.25rem 0; font-size: 0.95rem; color: #fff;">Interactive "What-If" Portfolio Sandbox</h4>
+                <h4 style="margin: 0 0 0.25rem 0; font-size: 0.95rem; color: #F8FAFC;">Interactive "What-If" Portfolio Sandbox</h4>
                 <p style="margin: 0; font-size: 0.78rem; color: var(--text-dim);">Test how adding orthogonal asset classes alters your Sharpe frontier and tail protection in real time.</p>
               </div>
             </div>
@@ -372,7 +372,7 @@
             <div class="whatif-impact-card" id="whatif-impact-card">
               <div class="impact-title-row">
                 <span id="whatif-candidate-name">Selected: +10% Gold (GLD)</span>
-                <button type="button" id="btn-inject-asset" class="btn-chip" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: #10b981;">
+                <button type="button" id="btn-inject-asset" class="btn-chip" style="background: rgba(0, 255, 157, 0.12); color: #00FF9D; border-color: rgba(0, 255, 157, 0.35);">
                   <span>⚡ Inject into Portfolio Table</span>
                 </button>
               </div>
@@ -436,7 +436,7 @@
                 <th>Asset</th>
                 <th>Current %</th>
                 <th>Optimized %</th>
-                <th>Delta ($\Delta w$)</th>
+                <th>Delta (Δw)</th>
                 <th>Action</th>
               </tr>
             </thead>

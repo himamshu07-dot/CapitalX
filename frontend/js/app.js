@@ -1,4 +1,4 @@
-import { ApiClient } from './api.js';
+import { ApiClient, getApiBaseUrl } from './api.js';
 import { ChartManager } from './charts.js';
 
 // Predefined portfolio templates for hackathon showcase
@@ -91,7 +91,7 @@ async function checkBackendHealth() {
   const healthy = await ApiClient.checkHealth();
   if (healthy) {
     statusText.textContent = 'Engine Active';
-    dot.style.backgroundColor = 'var(--accent-emerald)';
+    dot.style.backgroundColor = 'var(--accent-mint)';
   } else {
     statusText.textContent = 'Engine Offline (Start Backend)';
     dot.style.backgroundColor = 'var(--accent-amber)';
@@ -99,6 +99,20 @@ async function checkBackendHealth() {
 }
 
 function setupEventListeners() {
+  // Status badge click to inspect or configure Backend URL
+  const statusBadge = document.querySelector('.status-badge');
+  if (statusBadge) {
+    statusBadge.style.cursor = 'pointer';
+    statusBadge.title = `Current API: ${getApiBaseUrl()} (Click to change)`;
+    statusBadge.addEventListener('click', () => {
+      const current = getApiBaseUrl();
+      const updated = prompt('Configure CapitalX Backend API Endpoint (e.g. Render URL):', current);
+      if (updated !== null && updated.trim()) {
+        localStorage.setItem('capitalx_api_url', updated.trim());
+        location.reload();
+      }
+    });
+  }
   // Preset buttons
   document.querySelectorAll('[data-preset]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -477,8 +491,8 @@ function displayActiveScenario(s) {
   const cushionEl = document.getElementById('stress-cushion-badge');
   const deltaPct = (s.drawdown_delta * 100).toFixed(1);
   cushionEl.textContent = `${s.drawdown_delta >= 0 ? '+' : ''}${deltaPct}% Downside Cushion`;
-  cushionEl.style.color = s.drawdown_delta >= 0 ? '#34d399' : '#f43f5e';
-  cushionEl.style.borderColor = s.drawdown_delta >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)';
+  cushionEl.style.color = s.drawdown_delta >= 0 ? '#00FF9D' : '#FF3366';
+  cushionEl.style.borderColor = s.drawdown_delta >= 0 ? 'var(--accent-mint)' : 'var(--accent-rose)';
 
   document.getElementById('stress-curr-dd').textContent = `${(s.current_drawdown * 100).toFixed(1)}%`;
   document.getElementById('stress-curr-recovery').textContent = `Est. Recovery: ~${s.recovery_months} Months`;
@@ -603,7 +617,7 @@ function renderRebalanceTable(actions) {
       <td><strong>${item.ticker}</strong></td>
       <td>${currPct}%</td>
       <td><strong style="color: var(--accent-cyan);">${targetPct}%</strong></td>
-      <td style="color: ${item.delta_weight > 0 ? 'var(--accent-emerald)' : item.delta_weight < 0 ? 'var(--accent-rose)' : 'var(--text-dim)'};">
+      <td style="color: ${item.delta_weight > 0 ? 'var(--accent-mint)' : item.delta_weight < 0 ? 'var(--accent-rose)' : 'var(--text-dim)'};">
         ${item.delta_weight > 0 ? '+' : ''}${deltaPct}%
       </td>
       <td>

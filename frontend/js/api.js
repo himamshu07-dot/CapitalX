@@ -2,17 +2,23 @@
  * CapitalX Backend API Client
  */
 
-// Default to local backend or production Render URL
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:8000'
-  : 'https://capitalx-backend.onrender.com'; // Render deployment target
+export function getApiBaseUrl() {
+  const customUrl = localStorage.getItem('capitalx_api_url');
+  if (customUrl) return customUrl.replace(/\/+$/, '');
+
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8000'
+    : (window.CAPITALX_API_URL || 'https://capitalx-backend.onrender.com');
+}
 
 export class ApiClient {
   static async checkHealth() {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/health`, {
+      const url = getApiBaseUrl();
+      const res = await fetch(`${url}/api/v1/health`, {
         method: 'GET',
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(8000)
       });
       return res.ok;
     } catch (e) {
@@ -21,7 +27,8 @@ export class ApiClient {
   }
 
   static async optimizePortfolio(payload) {
-    const res = await fetch(`${API_BASE_URL}/api/v1/optimize`, {
+    const url = getApiBaseUrl();
+    const res = await fetch(`${url}/api/v1/optimize`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
