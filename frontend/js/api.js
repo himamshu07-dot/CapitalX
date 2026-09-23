@@ -8,7 +8,7 @@ export function getApiBaseUrl() {
 
   return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:8000'
-    : (window.CAPITALX_API_URL || 'https://capitalx-backend.onrender.com');
+    : (window.CAPITALX_API_URL || 'https://capitalx-826z.onrender.com');
 }
 
 export class ApiClient {
