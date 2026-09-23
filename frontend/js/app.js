@@ -329,7 +329,34 @@ async function executeOptimization() {
     renderResults(data);
 
   } catch (err) {
-    errorAlert.textContent = err.message || 'An error occurred during optimization.';
+    if (err.message && err.message.toLowerCase().includes('failed to fetch')) {
+      const currentUrl = getApiBaseUrl();
+      errorAlert.innerHTML = `
+        <div style="line-height: 1.5;">
+          <strong>⚠️ Unable to connect to backend engine:</strong><br>
+          <code style="color: #00E5FF; font-size: 0.75rem; word-break: break-all;">${currentUrl}</code>
+          <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #cbd5e1;">
+            • <strong>Cold start:</strong> If Render was sleeping or just deployed, it takes ~45 seconds to spin up. Try again in a moment.<br>
+            • <strong>Custom URL:</strong> If your Render URL is different, set it below:
+          </div>
+          <button type="button" id="btn-fix-backend-url" style="margin-top: 0.6rem; background: #00E5FF; color: #070A11; border: none; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">
+            🔗 Change / Paste Render URL
+          </button>
+        </div>
+      `;
+      const btnFix = document.getElementById('btn-fix-backend-url');
+      if (btnFix) {
+        btnFix.addEventListener('click', () => {
+          const updated = prompt('Paste your Render Backend URL (e.g. https://your-service.onrender.com):', currentUrl);
+          if (updated && updated.trim()) {
+            localStorage.setItem('capitalx_api_url', updated.trim());
+            location.reload();
+          }
+        });
+      }
+    } else {
+      errorAlert.textContent = err.message || 'An error occurred during optimization.';
+    }
     errorAlert.classList.remove('hidden');
   } finally {
     submitBtn.disabled = false;
